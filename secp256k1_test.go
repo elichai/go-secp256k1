@@ -68,7 +68,7 @@ func TestSignVerifyECDSA(t *testing.T) {
 		msg := [32]byte{}
 		n, err := rand.Read(msg[:])
 		if err != nil || n != 32 {
-			t.Errorf("Failed generating a msg %v %d", err, n)
+			t.Fatalf("Failed generating a msg %v %d", err, n)
 		}
 		sig1 := privkey.EcdsaSign(msg)
 		sig2 := privkey.EcdsaSign(msg)
@@ -148,8 +148,7 @@ func BenchmarkSchnorrVerify(b *testing.B) {
 			sum += 1
 		}
 	}
-	if sum != b.N {
+	if sum != b.N { // To prevent optimizing out the loop
 		panic("bad benchmark")
 	}
-
 }

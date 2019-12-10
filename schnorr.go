@@ -1,7 +1,6 @@
 package secp256k1
 
 // #include "./depend/secp256k1/include/secp256k1_schnorrsig.h"
-// #include "./depend/secp256k1/include/secp256k1.h"
 import "C"
 import "errors"
 
@@ -12,7 +11,6 @@ type SchnorrPublicKey struct {
 type SchnorrSignature struct {
 	sig C.secp256k1_schnorrsig
 }
-
 
 func (key *PrivateKey) GenerateSchnorrPublicKey() SchnorrPublicKey {
 	pubkey := SchnorrPublicKey{}
@@ -60,4 +58,3 @@ func (key *SchnorrPublicKey) Serialize() [32]byte {
 	}
 	return serialized
 }
-
