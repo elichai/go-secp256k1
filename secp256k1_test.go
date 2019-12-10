@@ -120,3 +120,36 @@ func TestSignVerifySchnorr(t *testing.T) {
 
 	}
 }
+
+func BenchmarkSchnorrVerify(b *testing.B) {
+	b.ReportAllocs()
+	sigs := make([]SchnorrSignature, b.N)
+	msgs := make([][32]byte, b.N)
+	pubkeys := make([]SchnorrPublicKey, b.N)
+	for i := 0; i < b.N; i++ {
+		msg := [32]byte{}
+		n, err := rand.Read(msg[:])
+		if err != nil || n != 32 {
+			panic("benchmark failed")
+		}
+		privkey, err := GeneratePrivateKey()
+		if err != nil {
+			panic("benchmark failed")
+		}
+		sigs[i] = privkey.SchnorrSign(msg)
+		pubkeys[i] = privkey.GenerateSchnorrPublicKey()
+		msgs[i] = msg
+	}
+	b.ResetTimer()
+	sum := 0
+	for i := 0; i < b.N; i++ {
+		ret := pubkeys[i].SchnorrVerify(msgs[i], sigs[i])
+		if ret {
+			sum += 1
+		}
+	}
+	if sum != b.N {
+		panic("bad benchmark")
+	}
+
+}
