@@ -12,6 +12,26 @@ type EcdsaSignature struct {
 	sig C.secp256k1_ecdsa_signature
 }
 
+func (signature *EcdsaSignature) Serialize() [64]byte {
+	serialized := [64]byte{}
+	cDataPtr := (*C.uchar)(&serialized[0])
+	ret := C.secp256k1_ecdsa_signature_serialize_compact(C.secp256k1_context_no_precomp, cDataPtr, &signature.sig)
+	if ret != 1 {
+		panic("failed Signing ECDSA. should never happen")
+	}
+	return serialized
+}
+
+func ParseEcdsaSignature(serialized [64]byte) (signature *EcdsaSignature, err error) {
+	signature = &EcdsaSignature{}
+	cDataPtr := (*C.uchar)(&serialized[0])
+	ret := C.secp256k1_ecdsa_signature_parse_compact(context, &signature.sig, cDataPtr)
+	if ret != 1 {
+		return nil, errors.New("failed parsing the ECDSA signature")
+	}
+	return
+}
+
 func (key *PrivateKey) GenerateEcdsaPublicKey() EcdsaPublicKey {
 	pubkey := EcdsaPublicKey{}
 	cPtrPrivKey := (*C.uchar)(&key.privkey[0])
