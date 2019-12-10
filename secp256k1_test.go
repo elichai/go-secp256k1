@@ -60,7 +60,7 @@ func TestParseECDSAPubKey(t *testing.T) {
 	}
 }
 
-func TestSignVerifyECDSA(t *testing.T) {
+func TestSignVerifyParseECDSA(t *testing.T) {
 	for i := 0; i < 150; i++ {
 		privkey := fastGeneratePrivateKey(t)
 
@@ -75,6 +75,13 @@ func TestSignVerifyECDSA(t *testing.T) {
 		if sig1 != sig2 {
 			t.Errorf("Signing isn't deterministic %v %v", sig1, sig2)
 		}
+
+		serialized := sig1.Serialize()
+		sigDeserialized, err := ParseEcdsaSignature(serialized)
+		if err != nil || sig1 != *sigDeserialized {
+			t.Errorf("Failed deserializing ECDSA sig %v", serialized)
+		}
+
 		if !pubkey.EcdsaVerify(msg, sig1) {
 			t.Errorf("Failed verifying ECDSA signature privkey: %v pubkey: %v signature: %v", privkey, pubkey, sig1)
 		}
@@ -99,7 +106,7 @@ func TestParseSchnorrPubKey(t *testing.T) {
 	}
 }
 
-func TestSignVerifySchnorr(t *testing.T) {
+func TestSignVerifyParseSchnorr(t *testing.T) {
 	for i := 0; i < 150; i++ {
 		privkey := fastGeneratePrivateKey(t)
 
@@ -113,6 +120,11 @@ func TestSignVerifySchnorr(t *testing.T) {
 		sig2 := privkey.SchnorrSign(msg)
 		if sig1 != sig2 {
 			t.Errorf("Signing isn't deterministic %v %v", sig1, sig2)
+		}
+		serialized := sig1.Serialize()
+		sigDeserialized, err := ParseSchnorrSignature(serialized)
+		if err != nil || sig1 != *sigDeserialized {
+			t.Errorf("Failed Deserializing schnorr sig %v", serialized)
 		}
 		if !pubkey.SchnorrVerify(msg, sig1) {
 			t.Errorf("Failed verifying ECDSA signature privkey: %v pubkey: %v signature: %v", privkey, pubkey, sig1)
