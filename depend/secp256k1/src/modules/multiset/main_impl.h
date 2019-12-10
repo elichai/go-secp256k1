@@ -46,6 +46,15 @@ static void gej_from_multiset_var(secp256k1_gej *target,  const secp256k1_multis
     target->infinity = secp256k1_fe_is_zero(&target->z) ? 1 : 0;
 }
 
+/* Converts a multiset to group element (Jacobian)
+ * Infinite uses special value, z = 0 */
+static void ge_from_multiset_var(secp256k1_ge *target,  const secp256k1_multiset *input) {
+  secp256k1_gej gej;
+
+  gej_from_multiset_var(&gej, input);
+  secp256k1_ge_set_gej(target, &gej);
+}
+
 /* Converts a data element to a group element (affine)
  *
  * We use trial-and-rehash which is fast but non-constant time.
@@ -188,14 +197,54 @@ int secp256k1_multiset_finalize(const secp256k1_context* ctx, unsigned char *res
    represented by the Jacobian GE infinite */
 int secp256k1_multiset_init(const secp256k1_context* ctx, secp256k1_multiset *multiset) {
 
-
-    const secp256k1_gej inf = SECP256K1_GEJ_CONST_INFINITY;
+    secp256k1_gej inf = SECP256K1_GEJ_CONST_INFINITY;
 
     VERIFY_CHECK(ctx != NULL);
 
     multiset_from_gej_var(multiset, &inf);
 
     return 1;
+}
+
+int secp256k1_multiset_serialize(const secp256k1_context* ctx, unsigned char *out64, const secp256k1_multiset *multiset) {
+  secp256k1_ge ge;
+
+  VERIFY_CHECK(ctx != NULL);
+  ARG_CHECK(out64 != NULL);
+  memset(out64, 0, 32);
+  ARG_CHECK(multiset != NULL);
+
+  ge_from_multiset_var(&ge, multiset);
+
+  secp256k1_fe_normalize_var(&ge.x);
+  secp256k1_fe_normalize_var(&ge.y);
+  secp256k1_fe_get_b32(&out64[0], &ge.x);
+  secp256k1_fe_get_b32(&out64[32], &ge.y);
+  return 1;
+}
+
+int secp256k1_multiset_parse(const secp256k1_context* ctx, secp256k1_multiset *multiset, const unsigned char *in64) {
+  secp256k1_ge ge;
+  secp256k1_gej gej;
+  secp256k1_fe x, y;
+
+  VERIFY_CHECK(ctx != NULL);
+  ARG_CHECK(multiset != NULL);
+  memset(multiset, 0, sizeof(*multiset));
+  ARG_CHECK(in64 != NULL);
+
+  if (!secp256k1_fe_set_b32(&x, &in64[0]) || !secp256k1_fe_set_b32(&y, &in64[32])) {
+    return 0;
+  }
+
+  secp256k1_ge_set_xy(&ge, &x, &y);
+  if (!secp256k1_ge_is_valid_var(&ge)) {
+      return 0;
+  }
+  secp256k1_gej_set_ge(&gej, &ge);
+  multiset_from_gej_var(multiset, &gej);
+
+  return 1;
 }
 
 #endif
