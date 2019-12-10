@@ -874,3 +874,7 @@ int secp256k1_xonly_pubkey_tweak_test(const secp256k1_context* ctx, const secp25
 #ifdef ENABLE_MODULE_RECOVERY
 # include "modules/recovery/main_impl.h"
 #endif
+
+#ifdef ENABLE_MODULE_MULTISET
+# include "modules/multiset/main_impl.h"
+#endif

@@ -5575,6 +5575,10 @@ void run_ecdsa_openssl(void) {
 # include "modules/recovery/tests_impl.h"
 #endif
 
+#ifdef ENABLE_MODULE_MULTISET
+# include "modules/multiset/tests_impl.h"
+#endif
+
 int main(int argc, char **argv) {
     unsigned char seed16[16] = {0};
     unsigned char run32[32] = {0};
@@ -5718,6 +5722,10 @@ int main(int argc, char **argv) {
 #ifdef ENABLE_MODULE_RECOVERY
     /* ECDSA pubkey recovery tests */
     run_recovery_tests();
+#endif
+
+#ifdef ENABLE_MODULE_MULTISET
+    run_multiset_tests();
 #endif
 
     secp256k1_rand256(run32);
