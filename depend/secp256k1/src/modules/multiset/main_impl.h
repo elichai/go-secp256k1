@@ -213,6 +213,7 @@ int secp256k1_multiset_serialize(const secp256k1_context* ctx, unsigned char *ou
   ARG_CHECK(out64 != NULL);
   memset(out64, 0, 32);
   ARG_CHECK(multiset != NULL);
+  /* TODO: if all zeros set infinity */
 
   ge_from_multiset_var(&ge, multiset);
 
@@ -232,6 +233,9 @@ int secp256k1_multiset_parse(const secp256k1_context* ctx, secp256k1_multiset *m
   ARG_CHECK(multiset != NULL);
   memset(multiset, 0, sizeof(*multiset));
   ARG_CHECK(in64 != NULL);
+
+  /* TODO: if infinity set all zeros */
+
 
   if (!secp256k1_fe_set_b32(&x, &in64[0]) || !secp256k1_fe_set_b32(&y, &in64[32])) {
     return 0;

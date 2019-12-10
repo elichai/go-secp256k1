@@ -316,6 +316,21 @@ void test_parse_multiset(void) {
   }
 }
 
+void test_infinity(void) {
+  secp256k1_multiset multiset1, multiset2;
+  unsigned char out[64];
+  int i, sum = 0;
+  secp256k1_multiset_init(ctx, &multiset1);
+  secp256k1_multiset_serialize(ctx, out, &multiset1);
+  for (i = 0; i < 64; ++i) {
+    sum |= out[i];
+  }
+  CHECK(sum == 0);
+  secp256k1_multiset_parse(ctx, &multiset2, out);
+  CHECK(memcmp(&multiset1, &multiset2, sizeof(multiset1)) == 0);
+
+}
+
 void test_unordered(void) {
 
     secp256k1_multiset empty, r1,r2,r3;
@@ -501,6 +516,7 @@ void run_multiset_tests(void) {
     test_combine();
     test_remove();
     test_empty();
+    test_infinity();
 
 }
 
