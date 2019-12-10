@@ -16,13 +16,19 @@
 
 /* Converts a group element (Jacobian) to a multiset.
  * Requires the field elements to be normalized
- * Infinite uses special value, z = 0 */
-static void multiset_from_gej_var(secp256k1_multiset *target, const secp256k1_gej *input) {
+ * Infinite uses special value, z = 0
+ *  Will also normalize the input.
+ */
+static void multiset_from_gej_var(secp256k1_multiset *target, secp256k1_gej *input) {
 
     if (input->infinity) {
         memset(&target->d, 0, sizeof(target->d));
     }
     else {
+        secp256k1_fe_normalize(&input->x);
+        secp256k1_fe_normalize(&input->y);
+        secp256k1_fe_normalize(&input->z);
+
         secp256k1_fe_get_b32(target->d, &input->x);
         secp256k1_fe_get_b32(target->d+32, &input->y);
         secp256k1_fe_get_b32(target->d+64, &input->z);
@@ -96,9 +102,6 @@ int secp256k1_multiset_add(const secp256k1_context* ctx,
 
     secp256k1_gej_add_ge_var(&target, &source, &newelm, NULL);
 
-    secp256k1_fe_normalize(&target.x);
-    secp256k1_fe_normalize(&target.y);
-    secp256k1_fe_normalize(&target.z);
     multiset_from_gej_var(multiset, &target);
 
     return 1;
@@ -123,9 +126,6 @@ int secp256k1_multiset_remove(const secp256k1_context* ctx,
     secp256k1_ge_neg(&neg_newelm, &newelm);
     secp256k1_gej_add_ge_var(&target, &source, &neg_newelm, NULL);
 
-    secp256k1_fe_normalize(&target.x);
-    secp256k1_fe_normalize(&target.y);
-    secp256k1_fe_normalize(&target.z);
     multiset_from_gej_var(multiset, &target);
 
     return 1;
@@ -145,9 +145,6 @@ int secp256k1_multiset_combine(const secp256k1_context* ctx, secp256k1_multiset 
 
     secp256k1_gej_add_var(&gej_result, &gej_multiset, &gej_input, NULL);
 
-    secp256k1_fe_normalize(&gej_result.x);
-    secp256k1_fe_normalize(&gej_result.y);
-    secp256k1_fe_normalize(&gej_result.z);
     multiset_from_gej_var(multiset, &gej_result);
 
     return 1;
