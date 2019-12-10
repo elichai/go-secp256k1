@@ -12,6 +12,26 @@ type SchnorrSignature struct {
 	sig C.secp256k1_schnorrsig
 }
 
+func (signature *SchnorrSignature) Serialize() [64]byte {
+	serialized := [64]byte{}
+	cDataPtr := (*C.uchar)(&serialized[0])
+	ret := C.secp256k1_schnorrsig_serialize(C.secp256k1_context_no_precomp, cDataPtr, &signature.sig)
+	if ret != 1 {
+		panic("failed Signing ECDSA. should never happen")
+	}
+	return serialized
+}
+
+func ParseSchnorrSignature(serialized [64]byte) (signature *SchnorrSignature, err error) {
+	signature = &SchnorrSignature{}
+	cDataPtr := (*C.uchar)(&serialized[0])
+	ret := C.secp256k1_schnorrsig_parse(context, &signature.sig, cDataPtr)
+	if ret != 1 {
+		return nil, errors.New("failed parsing the schnorr signature")
+	}
+	return
+}
+
 func (key *PrivateKey) GenerateSchnorrPublicKey() SchnorrPublicKey {
 	pubkey := SchnorrPublicKey{}
 	cPtrPrivKey := (*C.uchar)(&key.privkey[0])
