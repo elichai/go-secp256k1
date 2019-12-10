@@ -7,7 +7,7 @@ type MultiSet struct {
 	set C.secp256k1_multiset
 }
 
-func NewMutliset() MultiSet {
+func NewMultiset() MultiSet {
 	multiset := MultiSet{}
 	ret := C.secp256k1_multiset_init(context, &multiset.set)
 	if ret != 1 {

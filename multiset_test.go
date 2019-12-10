@@ -7,7 +7,7 @@ import (
 
 func TestMultiSetAddRemove(t *testing.T) {
 	list := [150][100]byte{}
-	set := NewMutliset()
+	set := NewMultiset()
 	set2 := set
 	for i := 0; i < 150; i++ {
 		data := [100]byte{}
@@ -41,12 +41,12 @@ func BenchmarkMultiSet_Add(b *testing.B) {
 		}
 		list[i] = data
 	}
-	set := NewMutliset()
+	set := NewMultiset()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		set.Add(list[i][:])
 	}
-	if set == NewMutliset() { // To prevent optimizing out the loop
+	if set == NewMultiset() { // To prevent optimizing out the loop
 		panic("bad benchmark")
 	}
 }
@@ -62,19 +62,19 @@ func BenchmarkMultiSet_Remove(b *testing.B) {
 		}
 		list[i] = data
 	}
-	set := NewMutliset()
+	set := NewMultiset()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		set.Remove(list[i][:])
 	}
-	if set == NewMutliset() { // To prevent optimizing out the loop
+	if set == NewMultiset() { // To prevent optimizing out the loop
 		panic("bad benchmark")
 	}
 }
 
 func BenchmarkMultiSet_Combine(b *testing.B) {
 	b.ReportAllocs()
-	set := NewMutliset()
+	set := NewMultiset()
 	sets := make([]MultiSet, b.N)
 	for i := 0; i < b.N; i++ {
 		data := [100]byte{}
@@ -90,7 +90,7 @@ func BenchmarkMultiSet_Combine(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		set.Combine(sets[i])
 	}
-	if set == NewMutliset() { // To prevent optimizing out the loop
+	if set == NewMultiset() { // To prevent optimizing out the loop
 		panic("bad benchmark")
 	}
 }
