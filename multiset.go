@@ -2,6 +2,7 @@ package secp256k1
 
 // #include "./depend/secp256k1/include/secp256k1_multiset.h"
 import "C"
+import "errors"
 
 type MultiSet struct {
 	set C.secp256k1_multiset
@@ -56,4 +57,24 @@ func (multiset *MultiSet) Finalize() [32]byte {
 		panic("failed finalizing the multiset. should never happen")
 	}
 	return hash
+}
+
+func (multiset *MultiSet) Serialize() [64]byte {
+	serialized := [64]byte{}
+	cPtrData := (*C.uchar)(&serialized[0])
+	ret := C.secp256k1_multiset_serialize(context, cPtrData, &multiset.set)
+	if ret != 1 {
+		panic("failed serializing the multiset. should never happen")
+	}
+	return serialized
+}
+
+func  ParseMultiSet(serialized [64]byte) (multiset *MultiSet, err error) {
+	multiset = &MultiSet{}
+	cPtrData := (*C.uchar)(&serialized[0])
+	ret := C.secp256k1_multiset_parse(context, &multiset.set, cPtrData)
+	if ret != 1 {
+		return nil, errors.New("failed parsing the multiset")
+	}
+	return
 }
