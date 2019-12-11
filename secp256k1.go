@@ -6,6 +6,8 @@ package secp256k1
 // #cgo CFLAGS: -DSECP256K1_BUILD=1 -DECMULT_WINDOW_SIZE=15 -DUSE_ENDOMORPHISM=1  -DENABLE_MODULE_SCHNORRSIG=1 -DENABLE_MODULE_MULTISET=1
 // // Consider using libgmp. these macros are set to use the slower in-project implementation of nums
 // #cgo CFLAGS: -DUSE_NUM_NONE=1 -DUSE_FIELD_INV_BUILTIN=1 -DUSE_SCALAR_INV_BUILTIN=1 -DECMULT_GEN_PREC_BITS=4
+// // x86_64 can use the Assembly implementation.
+// #cgo amd64 CFLAGS: -DUSE_ASM_X86_64=1
 // // check if 32 bit
 // #cgo 386 amd64p32 arm armbe mips mipsle mips64p32 mips64p32le ppc s390 sparc CFLAGS: -DUSE_FIELD_10X26=1 -DUSE_SCALAR_8X32=1
 // // check if 64 bit
