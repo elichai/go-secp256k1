@@ -550,6 +550,7 @@ if test x"$enable_experimental" = x"yes"; then
   AC_MSG_NOTICE([Experimental features do not have stable APIs or properties, and may not be safe for production use.])
   AC_MSG_NOTICE([Building ECDH module: $enable_module_ecdh])
   AC_MSG_NOTICE([Building schnorrsig module: $enable_module_schnorrsig])
+  AC_MSG_NOTICE([Building multiset module: $enable_module_multiset])
   AC_MSG_NOTICE([******])
 else
   if test x"$enable_module_ecdh" = x"yes"; then
