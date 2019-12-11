@@ -180,7 +180,7 @@ int secp256k1_multiset_serialize(const secp256k1_context *ctx, unsigned char *ou
 
     VERIFY_CHECK(ctx != NULL);
     ARG_CHECK(out64 != NULL);
-    memset(out64, 0, 32);
+    memset(out64, 0, 64);
     ARG_CHECK(multiset != NULL);
     /* TODO: if all zeros set infinity */
 

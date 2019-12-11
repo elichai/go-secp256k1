@@ -321,13 +321,12 @@ void test_parse_multiset(void) {
 void test_infinity(void) {
   secp256k1_multiset multiset1, multiset2;
   unsigned char out[64];
-  int i, sum = 0;
+  int i;
   secp256k1_multiset_init(ctx, &multiset1);
   secp256k1_multiset_serialize(ctx, out, &multiset1);
   for (i = 0; i < 64; ++i) {
-    sum |= out[i];
+      CHECK(out[i] == 0);
   }
-  CHECK(sum == 0);
   secp256k1_multiset_parse(ctx, &multiset2, out);
   CHECK(memcmp(&multiset1, &multiset2, sizeof(multiset1)) == 0);
 
