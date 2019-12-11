@@ -222,6 +222,7 @@ void test_parse_multiset(void) {
   };
   unsigned char sout[64];
   secp256k1_ge ge;
+  secp256k1_gej gej;
   secp256k1_multiset multiset;
   size_t i;
   int32_t ecount;
@@ -259,7 +260,8 @@ void test_parse_multiset(void) {
   VG_CHECK(&multiset, sizeof(multiset));
   CHECK(ecount == 0);
   VG_UNDEF(&ge, sizeof(ge));
-  ge_from_multiset_var(&ge, &multiset);
+  gej_from_multiset_var(&gej, &multiset);
+  secp256k1_ge_set_gej_var(&ge, &gej);
   VG_CHECK(&ge.x, sizeof(ge.x));
   VG_CHECK(&ge.y, sizeof(ge.y));
   VG_CHECK(&ge.infinity, sizeof(ge.infinity));

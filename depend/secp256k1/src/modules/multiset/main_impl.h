@@ -46,15 +46,6 @@ static void gej_from_multiset_var(secp256k1_gej *target,  const secp256k1_multis
     target->infinity = secp256k1_fe_is_zero(&target->z) ? 1 : 0;
 }
 
-/* Converts a multiset to group element (Jacobian)
- * Infinite uses special value, z = 0 */
-static void ge_from_multiset_var(secp256k1_ge *target,  const secp256k1_multiset *input) {
-  secp256k1_gej gej;
-
-  gej_from_multiset_var(&gej, input);
-  secp256k1_ge_set_gej(target, &gej);
-}
-
 /* Converts a data element to a group element (affine)
  *
  * We use trial-and-rehash which is fast but non-constant time.
@@ -207,6 +198,7 @@ int secp256k1_multiset_init(const secp256k1_context* ctx, secp256k1_multiset *mu
 }
 
 int secp256k1_multiset_serialize(const secp256k1_context* ctx, unsigned char *out64, const secp256k1_multiset *multiset) {
+  secp256k1_gej gej;
   secp256k1_ge ge;
 
   VERIFY_CHECK(ctx != NULL);
@@ -215,7 +207,13 @@ int secp256k1_multiset_serialize(const secp256k1_context* ctx, unsigned char *ou
   ARG_CHECK(multiset != NULL);
   /* TODO: if all zeros set infinity */
 
-  ge_from_multiset_var(&ge, multiset);
+  gej_from_multiset_var(&gej, multiset);
+  if (secp256k1_gej_is_infinity(&gej)) {
+    /* Return all zeros.*/
+    return 1;
+  }
+
+  secp256k1_ge_set_gej(&ge, &gej);
 
   secp256k1_fe_normalize_var(&ge.x);
   secp256k1_fe_normalize_var(&ge.y);
@@ -236,16 +234,21 @@ int secp256k1_multiset_parse(const secp256k1_context* ctx, secp256k1_multiset *m
 
   /* TODO: if infinity set all zeros */
 
-
   if (!secp256k1_fe_set_b32(&x, &in64[0]) || !secp256k1_fe_set_b32(&y, &in64[32])) {
+    /* Fail if overflowed */
     return 0;
   }
 
-  secp256k1_ge_set_xy(&ge, &x, &y);
-  if (!secp256k1_ge_is_valid_var(&ge)) {
+  if (secp256k1_fe_is_zero(&x) && secp256k1_fe_is_zero(&y)) {
+    secp256k1_gej_set_infinity(&gej);
+  } else {
+    secp256k1_ge_set_xy(&ge, &x, &y);
+    if (!secp256k1_ge_is_valid_var(&ge)) {
       return 0;
+    }
+    secp256k1_gej_set_ge(&gej, &ge);
   }
-  secp256k1_gej_set_ge(&gej, &ge);
+
   multiset_from_gej_var(multiset, &gej);
 
   return 1;
