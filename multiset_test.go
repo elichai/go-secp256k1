@@ -9,6 +9,7 @@ func TestMultiSetAddRemove(t *testing.T) {
 	list := [150][100]byte{}
 	set := NewMultiset()
 	set2 := set
+	serializedEmpty := set.Serialize()
 	for i := 0; i < 150; i++ {
 		data := [100]byte{}
 		n, err := rand.Read(data[:])
@@ -28,6 +29,16 @@ func TestMultiSetAddRemove(t *testing.T) {
 	if set.Finalize() != set2.Finalize() {
 		t.Errorf("sets are different when they should be the same: set1: %x, set2: %x\n", set.Finalize(), set2.Finalize())
 	}
+	if set.Serialize() != serializedEmpty {
+		t.Errorf("serialized sets are different when they should be the same: set1: %x, set2: %x\n", set.Serialize(), serializedEmpty)
+	}
+	parsedSet, err := ParseMultiSet(serializedEmpty)
+	if err != nil {
+		t.Errorf("error: '%v' happened when parsing: %v", err, serializedEmpty)
+	} else if parsedSet.Finalize() != set.Finalize() {
+		t.Errorf("sets are different when they should be the same: set1: %x, parsedSet: %x\n", set.Finalize(), parsedSet.Finalize())
+
+	}
 }
 
 func BenchmarkMultiSet_Add(b *testing.B) {
@@ -45,6 +56,11 @@ func BenchmarkMultiSet_Add(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		set.Add(list[i][:])
+		tmpSer := set.Serialize()
+		tmpSet, err := ParseMultiSet(tmpSer)
+		if err != nil || tmpSet.Finalize() != set.Finalize() {
+			panic("bad benchmark")
+		}
 	}
 	if set == NewMultiset() { // To prevent optimizing out the loop
 		panic("bad benchmark")
