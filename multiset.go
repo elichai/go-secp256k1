@@ -69,7 +69,7 @@ func (multiset *MultiSet) Serialize() [64]byte {
 	return serialized
 }
 
-func  ParseMultiSet(serialized [64]byte) (multiset *MultiSet, err error) {
+func ParseMultiSet(serialized [64]byte) (multiset *MultiSet, err error) {
 	multiset = &MultiSet{}
 	cPtrData := (*C.uchar)(&serialized[0])
 	ret := C.secp256k1_multiset_parse(context, &multiset.set, cPtrData)

@@ -78,3 +78,15 @@ func (key *SchnorrPublicKey) Serialize() [32]byte {
 	}
 	return serialized
 }
+
+// TODO: Add tests
+func (key *SchnorrPublicKey) Add(tweak [32]byte) (is_negated *bool, err error) {
+	cPtrTweak := (*C.uchar)(&tweak[0])
+	cIs_negated := C.int(0)
+	ret := C.secp256k1_xonly_pubkey_tweak_add(C.secp256k1_context_no_precomp, &key.pubkey, &cIs_negated, &key.pubkey, cPtrTweak)
+	if ret != 1 {
+		return nil, errors.New("failed adding to the public key. tweak is bigger than the order or the complement of the private key")
+	}
+	*is_negated = (cIs_negated > 0)
+	return
+}

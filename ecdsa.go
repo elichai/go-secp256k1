@@ -83,3 +83,34 @@ func (key *EcdsaPublicKey) Serialize() [33]byte {
 	}
 	return serialized
 }
+
+// TODO: Add tests
+func (key *EcdsaPublicKey) Negate() {
+	ret := C.secp256k1_ec_pubkey_negate(C.secp256k1_context_no_precomp, &key.pubkey)
+	if ret != 1 {
+		panic("Failed Negating the public key. should never happen")
+	}
+}
+
+// TODO: Add tests
+func (key *EcdsaPublicKey) Add(tweak [32]byte) error {
+	cPtrTweak := (*C.uchar)(&tweak[0])
+	ret := C.secp256k1_ec_pubkey_tweak_add(C.secp256k1_context_no_precomp, &key.pubkey, cPtrTweak)
+	if ret != 1 {
+		return errors.New("failed adding to the public key. tweak is bigger than the order or the complement of the private key")
+	}
+	return nil
+}
+
+// TODO: Add tests
+func (key *EcdsaPublicKey) Combine(two *EcdsaPublicKey) (out *EcdsaPublicKey, err error) {
+	arr := [2]*C.secp256k1_pubkey{&key.pubkey, &two.pubkey}
+	cPtrArr := (**C.secp256k1_pubkey)(&arr[0])
+	cLen := C.size_t(len(arr))
+	out = &EcdsaPublicKey{}
+	ret := C.secp256k1_ec_pubkey_combine(C.secp256k1_context_no_precomp, &out.pubkey, cPtrArr, cLen)
+	if ret != 1 {
+		return nil, errors.New("failed combining two public keys. resulted in infinity")
+	}
+	return
+}

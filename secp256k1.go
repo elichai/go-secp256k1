@@ -27,6 +27,16 @@ var context *C.secp256k1_context
 
 func init() {
 	context = C.secp256k1_context_create(C.SECP256K1_CONTEXT_SIGN | C.SECP256K1_CONTEXT_VERIFY)
+	seed := [32]byte{}
+	n, err := rand.Read(seed[:])
+	if err != nil || n != len(seed) {
+		panic("Failed getting random values on initalizing")
+	}
+	cPtr := (*C.uchar)(&seed[0])
+	ret := C.secp256k1_context_randomize(context, cPtr)
+	if ret != 1 {
+		panic("Failed randomizing the context. should never happen")
+	}
 }
 
 type PrivateKey struct {
@@ -44,10 +54,6 @@ func ParsePrivateKey(data [32]byte) (key *PrivateKey, err error) {
 	return &PrivateKey{data}, nil
 }
 
-func (key PrivateKey) Serialize() [32]byte {
-	return key.privkey
-}
-
 func GeneratePrivateKey() (key *PrivateKey, err error) {
 	key = &PrivateKey{}
 	cPtr := (*C.uchar)(&key.privkey[0])
@@ -61,4 +67,36 @@ func GeneratePrivateKey() (key *PrivateKey, err error) {
 			return
 		}
 	}
+}
+
+func (key PrivateKey) Serialize() [32]byte {
+	return key.privkey
+}
+
+func (key *PrivateKey) Negate() {
+	cPtr := (*C.uchar)(&key.privkey[0])
+	ret := C.secp256k1_ec_privkey_negate(C.secp256k1_context_no_precomp, cPtr)
+	if ret != 1 {
+		panic("Failed Negating the private key. should never happen")
+	}
+}
+
+func (key *PrivateKey) Add(tweak [32]byte) error {
+	cPtrKey := (*C.uchar)(&key.privkey[0])
+	cPtrTweak := (*C.uchar)(&tweak[0])
+	ret := C.secp256k1_ec_privkey_tweak_add(C.secp256k1_context_no_precomp, cPtrKey, cPtrTweak)
+	if ret != 1 {
+		return errors.New("failed Adding to private key. tweak is bigger than the order or the complement of the private key")
+	}
+	return nil
+}
+
+func (key *PrivateKey) AddXonly(tweak [32]byte) error {
+	cPtrKey := (*C.uchar)(&key.privkey[0])
+	cPtrTweak := (*C.uchar)(&tweak[0])
+	ret := C.secp256k1_xonly_privkey_tweak_add(C.secp256k1_context_no_precomp, cPtrKey, cPtrTweak)
+	if ret != 1 {
+		return errors.New("failed Adding to private key. tweak is bigger than the order or the complement of the private key")
+	}
+	return nil
 }
