@@ -42,53 +42,6 @@ func TestGeneratePrivateKey(t *testing.T) {
 	}
 }
 
-func TestParseECDSAPubKey(t *testing.T) {
-	for i := 0; i < 150; i++ {
-		privkey := fastGeneratePrivateKey(t)
-		pubkey := privkey.GenerateEcdsaPublicKey()
-		serialized := pubkey.Serialize()
-
-		pubkeyNew, err := ParseEcdsaPubKey(serialized[:])
-		if err != nil {
-			t.Errorf("Failed Parsing the public key: %v", err)
-		}
-
-		if pubkey != *pubkeyNew {
-			t.Errorf("Pubkeys aren't the same: %v, %v", pubkey, pubkeyNew)
-		}
-
-	}
-}
-
-func TestSignVerifyParseECDSA(t *testing.T) {
-	for i := 0; i < 150; i++ {
-		privkey := fastGeneratePrivateKey(t)
-
-		pubkey := privkey.GenerateEcdsaPublicKey()
-		msg := [32]byte{}
-		n, err := rand.Read(msg[:])
-		if err != nil || n != 32 {
-			t.Fatalf("Failed generating a msg %v %d", err, n)
-		}
-		sig1 := privkey.EcdsaSign(msg)
-		sig2 := privkey.EcdsaSign(msg)
-		if sig1 != sig2 {
-			t.Errorf("Signing isn't deterministic %v %v", sig1, sig2)
-		}
-
-		serialized := sig1.Serialize()
-		sigDeserialized, err := ParseEcdsaSignature(serialized)
-		if err != nil || sig1 != *sigDeserialized {
-			t.Errorf("Failed deserializing ECDSA sig %v", serialized)
-		}
-
-		if !pubkey.EcdsaVerify(msg, sig1) {
-			t.Errorf("Failed verifying ECDSA signature privkey: %v pubkey: %v signature: %v", privkey, pubkey, sig1)
-		}
-
-	}
-}
-
 func TestParseSchnorrPubKey(t *testing.T) {
 	for i := 0; i < 150; i++ {
 		privkey := fastGeneratePrivateKey(t)
