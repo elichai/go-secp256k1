@@ -92,16 +92,24 @@ func TestSignVerifyParseECDSA(t *testing.T) {
 func TestParseSchnorrPubKey(t *testing.T) {
 	for i := 0; i < 150; i++ {
 		privkey := fastGeneratePrivateKey(t)
-		pubkey := privkey.GenerateSchnorrPublicKey()
-		serialized := pubkey.Serialize()
-
-		pubkeyNew, err := ParseSchnorrPubKey(serialized)
+		pubkey, err := privkey.GenerateSchnorrPublicKey()
 		if err != nil {
-			t.Errorf("Failed Parsing the public key: %v", err)
+			t.Errorf("Failed Generating a pubkey: %v, privkey: %v", err, privkey)
+		}
+		serialized_compressed := pubkey.SerializeCompressed()
+		serialized_uncompressed := pubkey.SerializeUncompressed()
+
+		pubkeyNew1, err := ParseSchnorrPubKey(serialized_compressed[:])
+		if err != nil {
+			t.Errorf("Failed Parsing the compressed public key: %v, key: %v", err, pubkeyNew1)
+		}
+		pubkeyNew2, err := ParseSchnorrPubKey(serialized_uncompressed[:])
+		if err != nil {
+			t.Errorf("Failed Parsing the uncompressed public key: %v, key: %v", err, pubkeyNew2)
 		}
 
-		if pubkey != *pubkeyNew {
-			t.Errorf("Pubkeys aren't the same: %v, %v", pubkey, pubkeyNew)
+		if *pubkey != *pubkeyNew1 || *pubkey != *pubkeyNew2 {
+			t.Errorf("Pubkeys aren't the same: %v, %v, %v", pubkey, pubkeyNew1, pubkeyNew2)
 		}
 	}
 }
@@ -110,26 +118,34 @@ func TestSignVerifyParseSchnorr(t *testing.T) {
 	for i := 0; i < 150; i++ {
 		privkey := fastGeneratePrivateKey(t)
 
-		pubkey := privkey.GenerateSchnorrPublicKey()
+		pubkey, err := privkey.GenerateSchnorrPublicKey()
+		if err != nil {
+			t.Errorf("Failed generating a pubkey: error: %v, privkey: %v", err, privkey)
+		}
 		msg := [32]byte{}
 		n, err := rand.Read(msg[:])
 		if err != nil || n != 32 {
 			t.Errorf("Failed generating a msg %v %d", err, n)
 		}
-		sig1 := privkey.SchnorrSign(msg)
-		sig2 := privkey.SchnorrSign(msg)
-		if sig1 != sig2 {
+		sig1, err := privkey.SchnorrSign(msg)
+		if err != nil {
+			t.Errorf("Failed signing schnorr: error: %v, key: %v, msg: %v", err, privkey, msg)
+		}
+		sig2, err := privkey.SchnorrSign(msg)
+		if err != nil {
+			t.Errorf("Failed signing schnorr: error: %v, key: %v, msg: %v", err, privkey, msg)
+		}
+		if *sig1 != *sig2 {
 			t.Errorf("Signing isn't deterministic %v %v", sig1, sig2)
 		}
 		serialized := sig1.Serialize()
-		sigDeserialized, err := ParseSchnorrSignature(serialized)
-		if err != nil || sig1 != *sigDeserialized {
+		sigDeserialized := ParseSchnorrSignature(serialized)
+		if *sig1 != sigDeserialized {
 			t.Errorf("Failed Deserializing schnorr sig %v", serialized)
 		}
-		if !pubkey.SchnorrVerify(msg, sig1) {
-			t.Errorf("Failed verifying ECDSA signature privkey: %v pubkey: %v signature: %v", privkey, pubkey, sig1)
+		if !pubkey.SchnorrVerify(msg, *sig1) {
+			t.Errorf("Failed verifying schnorr signature privkey: %v pubkey: %v signature: %v", privkey, pubkey, sig1)
 		}
-
 	}
 }
 
@@ -148,8 +164,16 @@ func BenchmarkSchnorrVerify(b *testing.B) {
 		if err != nil {
 			panic("benchmark failed")
 		}
-		sigs[i] = privkey.SchnorrSign(msg)
-		pubkeys[i] = privkey.GenerateSchnorrPublicKey()
+		sigTmp, err := privkey.SchnorrSign(msg)
+		if err != nil {
+			panic("benchmark failed")
+		}
+		sigs[i] = *sigTmp
+		pubkeyTmp, err := privkey.GenerateSchnorrPublicKey()
+		if err != nil {
+			panic("benchmark failed")
+		}
+		pubkeys[i] = *pubkeyTmp
 		msgs[i] = msg
 	}
 	b.ResetTimer()
