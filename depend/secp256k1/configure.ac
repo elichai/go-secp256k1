@@ -134,6 +134,11 @@ AC_ARG_ENABLE(module_schnorrsig,
     [enable_module_schnorrsig=$enableval],
     [enable_module_schnorrsig=no])
 
+AC_ARG_ENABLE(module_oldschnorr,
+    AS_HELP_STRING([--enable-module-oldschnorr],[enable oldschnorr module (experimental)]),
+    [enable_module_oldschnorr=$enableval],
+    [enable_module_oldschnorr=no])
+
 AC_ARG_ENABLE(module_recovery,
     AS_HELP_STRING([--enable-module-recovery],[enable ECDSA pubkey recovery module [default=no]]),
     [enable_module_recovery=$enableval],
@@ -526,6 +531,10 @@ if test x"$enable_module_schnorrsig" = x"yes"; then
   AC_DEFINE(ENABLE_MODULE_SCHNORRSIG, 1, [Define this symbol to enable the schnorrsig module])
 fi
 
+if test x"$enable_module_oldschnorr" = x"yes"; then
+  AC_DEFINE(ENABLE_MODULE_OLDSCHNORR, 1, [Define this symbol to enable the oldschnorr module])
+fi
+
 if test x"$enable_module_recovery" = x"yes"; then
   AC_DEFINE(ENABLE_MODULE_RECOVERY, 1, [Define this symbol to enable the ECDSA pubkey recovery module])
 fi
@@ -550,6 +559,7 @@ if test x"$enable_experimental" = x"yes"; then
   AC_MSG_NOTICE([Experimental features do not have stable APIs or properties, and may not be safe for production use.])
   AC_MSG_NOTICE([Building ECDH module: $enable_module_ecdh])
   AC_MSG_NOTICE([Building schnorrsig module: $enable_module_schnorrsig])
+  AC_MSG_NOTICE([Building oldschnorr module: $enable_module_oldschnorr])
   AC_MSG_NOTICE([Building multiset module: $enable_module_multiset])
   AC_MSG_NOTICE([******])
 else
@@ -559,6 +569,9 @@ else
   if test x"$enable_module_schnorrsig" = x"yes"; then
     AC_MSG_ERROR([schnorrsig module is experimental. Use --enable-experimental to allow.])
   fi
+    if test x"$enable_module_oldschnorr" = x"yes"; then
+      AC_MSG_ERROR([oldschnorr module is experimental. Use --enable-experimental to allow.])
+    fi
   if test x"$set_asm" = x"arm"; then
     AC_MSG_ERROR([ARM assembly optimization is experimental. Use --enable-experimental to allow.])
   fi
@@ -578,6 +591,7 @@ AM_CONDITIONAL([USE_BENCHMARK], [test x"$use_benchmark" = x"yes"])
 AM_CONDITIONAL([USE_ECMULT_STATIC_PRECOMPUTATION], [test x"$set_precomp" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_ECDH], [test x"$enable_module_ecdh" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_SCHNORRSIG], [test x"$enable_module_schnorrsig" = x"yes"])
+AM_CONDITIONAL([ENABLE_MODULE_OLDSCHNORR], [test x"$enable_module_oldschnorr" = x"yes"])
 AM_CONDITIONAL([ENABLE_MODULE_RECOVERY], [test x"$enable_module_recovery" = x"yes"])
  AM_CONDITIONAL([ENABLE_MODULE_MULTISET], [test x"$enable_module_multiset" = x"yes"])
 AM_CONDITIONAL([USE_JNI], [test x"$use_jni" = x"yes"])
@@ -602,6 +616,8 @@ echo "  with coverage           = $enable_coverage"
 echo "  module ecdh             = $enable_module_ecdh"
 echo "  module recovery         = $enable_module_recovery"
 echo "  module schnorrsig       = $enable_module_schnorrsig"
+echo "  module oldschnorr       = $enable_module_oldschnorr"
+echo "  module multiset         = $enable_module_multiset"
 echo
 echo "  asm                     = $set_asm"
 echo "  bignum                  = $set_bignum"

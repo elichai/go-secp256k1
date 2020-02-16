@@ -5571,6 +5571,14 @@ void run_ecdsa_openssl(void) {
 # include "modules/schnorrsig/tests_impl.h"
 #endif
 
+#ifdef ENABLE_MODULE_OLDSCHNORR
+# include "modules/oldschnorr/tests_impl.h"
+#endif
+
+#ifdef ENABLE_MODULE_MULTISET
+# include "modules/multiset/tests_impl.h"
+#endif
+
 #ifdef ENABLE_MODULE_RECOVERY
 # include "modules/recovery/tests_impl.h"
 #endif
@@ -5707,6 +5715,18 @@ int main(int argc, char **argv) {
 #ifdef ENABLE_MODULE_SCHNORRSIG
     /* Schnorrsig tests */
     run_schnorrsig_tests();
+#endif
+
+#ifdef ENABLE_MODULE_OLDSCHNORR
+    /* Oldschnorr tests */
+    printf("schnorrsig\n");
+    run_oldschnorr_tests();
+#endif
+
+#ifdef ENABLE_MODULE_MULTISET
+    /* ECMH tests */
+    printf("multiset\n");
+    run_multiset_tests();
 #endif
 
     /* ecdsa tests */
